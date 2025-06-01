@@ -6,10 +6,13 @@ import {
   Dimensions, 
   TouchableOpacity, 
   ScrollView,
-  TextStyle
+  TextStyle,
+  ViewStyle,
+  ImageStyle
 } from 'react-native';
+
 import { LineChart, BarChart, PieChart, ProgressChart, ContributionGraph } from 'react-native-chart-kit';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, AnimatedStyleProp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../../constants/theme';
 import { TrendAnalysisResult } from '../../services/trendAnalysis';
@@ -194,7 +197,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'line':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Emotion Parameters Over Time'),
-          React.createElement(LineChart, {
+          React.createElement(LineChart as any, {
             key: 'chart',
             data: {
               labels: generateDateLabels(),
@@ -249,7 +252,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'pie':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Emotion Distribution'),
-          React.createElement(PieChart, {
+          React.createElement(PieChart as any, {
             key: 'chart',
             data: prepareEmotionData(),
             width: chartWidth,
@@ -270,7 +273,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'bar':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Input Method Distribution'),
-          React.createElement(BarChart, {
+          React.createElement(BarChart as any, {
             key: 'chart',
             data: prepareTimeOfDayData(),
             width: chartWidth,
@@ -295,7 +298,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'radar':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Current Emotional Profile'),
-          React.createElement(ProgressChart, {
+          React.createElement(ProgressChart as any, {
             key: 'chart',
             data: prepareRadarData(),
             width: chartWidth,
@@ -321,7 +324,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'heatmap':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Mood Activity Calendar'),
-          React.createElement(ContributionGraph, {
+          React.createElement(ContributionGraph as any, {
             key: 'chart',
             values: prepareMoodHeatmapData(),
             endDate: new Date(),
@@ -381,7 +384,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
             },
             [
               React.createElement(
-                Ionicons,
+                Ionicons as any,
                 {
                   key: 'icon',
                   name: type === 'line' ? 'analytics' :
@@ -410,7 +413,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       
       // Current chart
       React.createElement(
-        Animated.View,
+        Animated.View as any,
         {
           key: 'chart-container',
           style: [styles.chartContainer, animatedChartStyle]
@@ -442,7 +445,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
             },
             [
               React.createElement(
-                Ionicons,
+                Ionicons as any,
                 {
                   key: 'insight-icon',
                   name: trendData.weeklySummary.changePercentage > 0 ? 'trending-up' :
