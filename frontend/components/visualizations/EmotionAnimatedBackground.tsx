@@ -10,6 +10,9 @@ interface EmotionAnimatedBackgroundProps {
   dominantEmotion: keyof EmotionData;
 }
 
+/**
+ * Component that renders an animated background based on the current emotion
+ */
 export const EmotionAnimatedBackground: React.FC<EmotionAnimatedBackgroundProps> = ({ 
   emotion,
   dominantEmotion
@@ -87,12 +90,12 @@ export const EmotionAnimatedBackground: React.FC<EmotionAnimatedBackgroundProps>
   };
   
   return React.createElement(
-    View, 
+    'View', 
     { style: styles.container },
     [
       // Background color
       React.createElement(
-        View, 
+        'View', 
         { 
           key: 'background',
           style: [
@@ -104,18 +107,18 @@ export const EmotionAnimatedBackground: React.FC<EmotionAnimatedBackgroundProps>
       
       // Wavy background
       React.createElement(
-        View,
+        'View',
         {
           key: 'wavy-background',
           style: styles.wavyBackground
         },
-        React.createElement(View, { style: styles.wave })
+        React.createElement('View', { style: styles.wave })
       ),
       
       // Particles
       ...particles.map((particle, index) => 
         React.createElement(
-          View,
+          'View',
           {
             key: `particle-${index}`,
             style: [
@@ -139,12 +142,12 @@ export const EmotionAnimatedBackground: React.FC<EmotionAnimatedBackgroundProps>
       
       // Center icon
       React.createElement(
-        View,
+        'View',
         { key: 'center-icon', style: styles.centerIconContainer },
         React.createElement(
-          Ionicons,
+          'Ionicons',
           {
-            name: getEmotionIcon(dominantEmotion) as any,
+            name: getEmotionIcon(dominantEmotion),
             size: 100,
             color: "rgba(255, 255, 255, 0.8)"
           }
@@ -198,6 +201,9 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Utility function to convert drawing data to base64
+ */
 export const drawingToBase64 = async (drawingData: string): Promise<string | null> => {
   try {
     return drawingData;
