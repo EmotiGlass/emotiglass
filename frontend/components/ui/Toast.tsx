@@ -3,7 +3,6 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  Animated, 
   TouchableOpacity,
   ViewStyle,
   StyleProp,
@@ -34,8 +33,6 @@ export const Toast: React.FC<ToastProps> = ({
   style,
 }) => {
   const [isVisible, setIsVisible] = useState(visible);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(20)).current;
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Icons and colors based on toast type
@@ -52,18 +49,6 @@ export const Toast: React.FC<ToastProps> = ({
   useEffect(() => {
     if (visible && !isVisible) {
       setIsVisible(true);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
 
       // Set timeout to hide toast
       if (duration > 0) {
@@ -85,23 +70,10 @@ export const Toast: React.FC<ToastProps> = ({
 
   // Hide toast with animation
   const hideToast = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: 20,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setIsVisible(false);
-      if (onDismiss) {
-        onDismiss();
-      }
-    });
+    setIsVisible(false);
+    if (onDismiss) {
+      onDismiss();
+    }
   };
 
   // If not visible, don't render anything
@@ -109,23 +81,54 @@ export const Toast: React.FC<ToastProps> = ({
     return null;
   }
 
-  return (
-    <Animated.View 
-      style={[
+  return React.createElement(
+    'View',
+    { 
+      style: [
         styles.container,
-        { opacity: fadeAnim, transform: [{ translateY }] },
         { borderLeftColor: color },
         style,
-      ]}
-    >
-      <View style={styles.content}>
-        <Ionicons name={icon as any} size={24} color={color} style={styles.icon} />
-        <Text style={styles.message}>{message}</Text>
-      </View>
-      <TouchableOpacity style={styles.closeButton} onPress={hideToast}>
-        <Ionicons name="close" size={20} color={theme.colors.textLight} />
-      </TouchableOpacity>
-    </Animated.View>
+      ]
+    },
+    [
+      React.createElement(
+        'View',
+        { key: 'content', style: styles.content },
+        [
+          React.createElement(
+            Ionicons,
+            { 
+              key: 'icon', 
+              name: icon as any, 
+              size: 24, 
+              color: color, 
+              style: styles.icon 
+            }
+          ),
+          React.createElement(
+            'Text',
+            { key: 'message', style: styles.message },
+            message
+          )
+        ]
+      ),
+      React.createElement(
+        'TouchableOpacity',
+        { 
+          key: 'closeButton', 
+          style: styles.closeButton, 
+          onPress: hideToast 
+        },
+        React.createElement(
+          Ionicons,
+          { 
+            name: "close", 
+            size: 20, 
+            color: theme.colors.textLight 
+          }
+        )
+      )
+    ]
   );
 };
 
@@ -161,18 +164,25 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToastConfig(prev => ({ ...prev, visible: false }));
   };
 
-  return (
-    <ToastContext.Provider value={{ showToast, hideToast }}>
-      {children}
-      <Toast
-        visible={toastConfig.visible}
-        message={toastConfig.message}
-        type={toastConfig.type}
-        duration={toastConfig.duration}
-        onDismiss={hideToast}
-        style={styles.toastPosition}
-      />
-    </ToastContext.Provider>
+  // Use direct React.createElement instead of JSX
+  return React.createElement(
+    ToastContext.Provider,
+    { value: { showToast, hideToast } },
+    [
+      children,
+      React.createElement(
+        Toast,
+        {
+          key: 'toast',
+          visible: toastConfig.visible,
+          message: toastConfig.message,
+          type: toastConfig.type,
+          duration: toastConfig.duration,
+          onDismiss: hideToast,
+          style: styles.toastPosition
+        }
+      )
+    ]
   );
 };
 

@@ -6,13 +6,10 @@ import {
   Dimensions, 
   TouchableOpacity, 
   ScrollView,
-  TextStyle,
-  ViewStyle,
-  ImageStyle
+  TextStyle
 } from 'react-native';
 
 import { LineChart, BarChart, PieChart, ProgressChart, ContributionGraph } from 'react-native-chart-kit';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, AnimatedStyleProp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../../constants/theme';
 import { TrendAnalysisResult } from '../../services/trendAnalysis';
@@ -36,10 +33,6 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
   
   // Active chart state
   const [activeChart, setActiveChart] = React.useState<ChartType>('line');
-  
-  // Animation values for chart switching
-  const chartOpacity = useSharedValue(1);
-  const chartTranslateY = useSharedValue(0);
   
   // Generate labels for the line chart (last N days)
   const generateDateLabels = () => {
@@ -153,43 +146,10 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
     return mockData;
   };
   
-  // Change chart type with animation
+  // Change chart type without animation
   const changeChartType = (type: ChartType) => {
-    // Animate out
-    chartOpacity.value = withTiming(0, { 
-      duration: 300,
-      easing: Easing.out(Easing.ease)
-    });
-    
-    chartTranslateY.value = withTiming(50, { 
-      duration: 300,
-      easing: Easing.out(Easing.ease)
-    }, () => {
-      // Change chart type
-      setActiveChart(type);
-      
-      // Animate in
-      chartOpacity.value = withTiming(1, { 
-        duration: 300,
-        easing: Easing.in(Easing.ease)
-      });
-      
-      chartTranslateY.value = withTiming(0, { 
-        duration: 300,
-        easing: Easing.in(Easing.ease)
-      });
-    });
+    setActiveChart(type);
   };
-  
-  // Animated chart container style
-  const animatedChartStyle = useAnimatedStyle(() => {
-    return {
-      opacity: chartOpacity.value,
-      transform: [
-        { translateY: chartTranslateY.value }
-      ]
-    };
-  });
   
   // Render current chart based on active type
   const renderCurrentChart = () => {
@@ -413,10 +373,10 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       
       // Current chart
       React.createElement(
-        Animated.View as any,
+        View,
         {
           key: 'chart-container',
-          style: [styles.chartContainer, animatedChartStyle]
+          style: styles.chartContainer
         },
         renderCurrentChart()
       ),
