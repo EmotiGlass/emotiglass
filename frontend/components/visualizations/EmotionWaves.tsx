@@ -16,6 +16,9 @@ interface EmotionWavesProps {
   moodAnalysis: EmotionAnalysisResult;
 }
 
+/**
+ * Component that renders animated wave patterns based on emotion analysis
+ */
 export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
   const { width, height } = Dimensions.get('window');
   const colors = getEmotionGradient(moodAnalysis.dominantEmotion);
@@ -94,38 +97,82 @@ export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
     return path;
   };
   
-  return (
-    <>
-      <Animated.View style={[styles.waveContainer, animatedStyle1]}>
-        <Svg width={width * 2} height={height} style={styles.wave}>
-          <Path
-            d={getWavePath(height * 0.15, width * 2, 0)}
-            fill={colors[0]}
-            fillOpacity={0.6}
-          />
-        </Svg>
-      </Animated.View>
+  return React.createElement(
+    React.Fragment,
+    null,
+    [
+      React.createElement(
+        'Animated.View',
+        { 
+          key: 'wave1',
+          style: [styles.waveContainer, animatedStyle1] 
+        },
+        React.createElement(
+          'Svg',
+          { 
+            width: width * 2, 
+            height: height, 
+            style: styles.wave 
+          },
+          React.createElement(
+            'Path',
+            {
+              d: getWavePath(height * 0.15, width * 2, 0),
+              fill: colors[0],
+              fillOpacity: 0.6
+            }
+          )
+        )
+      ),
       
-      <Animated.View style={[styles.waveContainer, animatedStyle2]}>
-        <Svg width={width * 2} height={height} style={styles.wave}>
-          <Path
-            d={getWavePath(height * 0.2, width * 2, Math.PI / 2)}
-            fill={colors[1]}
-            fillOpacity={0.4}
-          />
-        </Svg>
-      </Animated.View>
+      React.createElement(
+        'Animated.View',
+        { 
+          key: 'wave2',
+          style: [styles.waveContainer, animatedStyle2] 
+        },
+        React.createElement(
+          'Svg',
+          { 
+            width: width * 2, 
+            height: height, 
+            style: styles.wave 
+          },
+          React.createElement(
+            'Path',
+            {
+              d: getWavePath(height * 0.2, width * 2, Math.PI / 2),
+              fill: colors[1],
+              fillOpacity: 0.4
+            }
+          )
+        )
+      ),
       
-      <Animated.View style={[styles.waveContainer, animatedStyle3]}>
-        <Svg width={width * 2} height={height} style={styles.wave}>
-          <Path
-            d={getWavePath(height * 0.25, width * 2, Math.PI)}
-            fill={colors[2]}
-            fillOpacity={0.3}
-          />
-        </Svg>
-      </Animated.View>
-    </>
+      React.createElement(
+        'Animated.View',
+        { 
+          key: 'wave3',
+          style: [styles.waveContainer, animatedStyle3] 
+        },
+        React.createElement(
+          'Svg',
+          { 
+            width: width * 2, 
+            height: height, 
+            style: styles.wave 
+          },
+          React.createElement(
+            'Path',
+            {
+              d: getWavePath(height * 0.25, width * 2, Math.PI),
+              fill: colors[2],
+              fillOpacity: 0.3
+            }
+          )
+        )
+      )
+    ]
   );
 };
 
