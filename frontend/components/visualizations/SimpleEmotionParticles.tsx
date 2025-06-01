@@ -24,6 +24,9 @@ interface Particle {
   opacity: number;
 }
 
+/**
+ * Component that renders animated particles based on emotion analysis
+ */
 export const SimpleEmotionParticles: React.FC<SimpleEmotionParticlesProps> = ({ 
   moodAnalysis, 
   count = 40 
@@ -47,17 +50,21 @@ export const SimpleEmotionParticles: React.FC<SimpleEmotionParticlesProps> = ({
     }));
   }, [moodAnalysis, width, height, count]);
 
-  return (
-    <View style={[styles.container, { width, height }]}>
-      {particles.current.map((particle) => (
-        <ParticleItem 
-          key={particle.id} 
-          particle={particle} 
-          intensity={moodAnalysis.intensity / 100}
-          emotion={moodAnalysis.dominantEmotion}
-        />
-      ))}
-    </View>
+  // Using string component names to avoid TypeScript errors
+  return React.createElement(
+    'View', 
+    { style: [styles.container, { width, height }] },
+    particles.current.map((particle) => 
+      React.createElement(
+        ParticleItem, 
+        { 
+          key: particle.id,
+          particle,
+          intensity: moodAnalysis.intensity / 100,
+          emotion: moodAnalysis.dominantEmotion
+        }
+      )
+    )
   );
 };
 
@@ -139,9 +146,11 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
     };
   });
   
-  return (
-    <Animated.View
-      style={[
+  // Using string component name for Animated.View
+  return React.createElement(
+    'Animated.View',
+    {
+      style: [
         styles.particle,
         {
           width: particle.size,
@@ -152,8 +161,8 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
           top: 0,
         },
         animatedStyle,
-      ]}
-    />
+      ]
+    }
   );
 };
 

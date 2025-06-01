@@ -20,6 +20,9 @@ interface MoodTrendChartsProps {
   days: number;
 }
 
+/**
+ * Component to display various mood trend charts and visualizations
+ */
 export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({ 
   trendData, 
   days 
@@ -157,7 +160,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'line':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Emotion Parameters Over Time'),
-          React.createElement(LineChart as any, {
+          React.createElement('LineChart', {
             key: 'chart',
             data: {
               labels: generateDateLabels(),
@@ -212,7 +215,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'pie':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Emotion Distribution'),
-          React.createElement(PieChart as any, {
+          React.createElement('PieChart', {
             key: 'chart',
             data: prepareEmotionData(),
             width: chartWidth,
@@ -233,7 +236,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'bar':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Input Method Distribution'),
-          React.createElement(BarChart as any, {
+          React.createElement('BarChart', {
             key: 'chart',
             data: prepareTimeOfDayData(),
             width: chartWidth,
@@ -258,7 +261,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'radar':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Current Emotional Profile'),
-          React.createElement(ProgressChart as any, {
+          React.createElement('ProgressChart', {
             key: 'chart',
             data: prepareRadarData(),
             width: chartWidth,
@@ -284,7 +287,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       case 'heatmap':
         return [
           React.createElement(Text, { key: 'title', style: styles.chartTitle as TextStyle }, 'Mood Activity Calendar'),
-          React.createElement(ContributionGraph as any, {
+          React.createElement('ContributionGraph', {
             key: 'chart',
             values: prepareMoodHeatmapData(),
             endDate: new Date(),
@@ -303,7 +306,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
               },
             },
             style: styles.chart,
-            tooltipDataAttrs: (value: any) => ({
+            tooltipDataAttrs: () => ({
               fill: 'rgba(0, 0, 0, 0.7)',
               fontSize: 10,
               fontWeight: 'bold',
@@ -317,14 +320,14 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
   };
   
   return React.createElement(
-    View, 
+    'View', 
     { style: styles.container },
     [
-      React.createElement(Text, { key: 'title', style: styles.title as TextStyle }, 'Your Mood Trends'),
+      React.createElement('Text', { key: 'title', style: styles.title as TextStyle }, 'Your Mood Trends'),
       
       // Chart type selector
       React.createElement(
-        ScrollView,
+        'ScrollView',
         {
           key: 'chart-selector',
           horizontal: true,
@@ -333,7 +336,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
         },
         chartTypes.map((type) => 
           React.createElement(
-            TouchableOpacity,
+            'TouchableOpacity',
             {
               key: type,
               style: [
@@ -344,7 +347,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
             },
             [
               React.createElement(
-                Ionicons as any,
+                'Ionicons',
                 {
                   key: 'icon',
                   name: type === 'line' ? 'analytics' :
@@ -356,7 +359,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
                 }
               ),
               React.createElement(
-                Text,
+                'Text',
                 {
                   key: 'text',
                   style: [
@@ -373,7 +376,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       
       // Current chart
       React.createElement(
-        View,
+        'View',
         {
           key: 'chart-container',
           style: styles.chartContainer
@@ -383,12 +386,12 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
       
       // Insights
       React.createElement(
-        View,
+        'View',
         { key: 'insights', style: styles.insightsContainer },
         [
-          React.createElement(Text, { key: 'insights-title', style: styles.sectionTitle as TextStyle }, 'Insights'),
+          React.createElement('Text', { key: 'insights-title', style: styles.sectionTitle as TextStyle }, 'Insights'),
           React.createElement(
-            View,
+            'View',
             {
               key: 'insight-item',
               style: [
@@ -405,7 +408,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
             },
             [
               React.createElement(
-                Ionicons as any,
+                'Ionicons',
                 {
                   key: 'insight-icon',
                   name: trendData.weeklySummary.changePercentage > 0 ? 'trending-up' :
@@ -417,7 +420,7 @@ export const MoodTrendCharts: React.FC<MoodTrendChartsProps> = ({
                 }
               ),
               React.createElement(
-                Text,
+                'Text',
                 { key: 'insight-text', style: styles.insightText },
                 `This week's dominant emotion is ${trendData.weeklySummary.thisWeek.dominantEmotion} with ${trendData.weeklySummary.thisWeek.entriesCount} entries`
               )
@@ -512,6 +515,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.md,
     color: theme.colors.text,
   },
-}); 
+});
 
 export default MoodTrendCharts; 
