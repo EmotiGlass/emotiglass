@@ -66,7 +66,7 @@ export const Toast: React.FC<ToastProps> = ({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [visible, isVisible]);
+  }, [visible, isVisible, duration]);
 
   // Hide toast with animation
   const hideToast = () => {
@@ -96,10 +96,10 @@ export const Toast: React.FC<ToastProps> = ({
         { key: 'content', style: styles.content },
         [
           React.createElement(
-            Ionicons,
+            'Ionicons',
             { 
               key: 'icon', 
-              name: icon as any, 
+              name: icon, 
               size: 24, 
               color: color, 
               style: styles.icon 
@@ -120,7 +120,7 @@ export const Toast: React.FC<ToastProps> = ({
           onPress: hideToast 
         },
         React.createElement(
-          Ionicons,
+          'Ionicons',
           { 
             name: "close", 
             size: 20, 
@@ -143,6 +143,9 @@ export const ToastContext = React.createContext<ToastContextType>({
   hideToast: () => {},
 });
 
+/**
+ * Provider component for managing toast messages throughout the app
+ */
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toastConfig, setToastConfig] = useState({
     visible: false,
@@ -164,7 +167,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToastConfig(prev => ({ ...prev, visible: false }));
   };
 
-  // Use direct React.createElement instead of JSX
   return React.createElement(
     ToastContext.Provider,
     { value: { showToast, hideToast } },
@@ -186,7 +188,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-// Hook for using toast in functional components
+/**
+ * Hook for using toast functionality in any component
+ */
 export const useToast = () => {
   const context = React.useContext(ToastContext);
   if (!context) {
