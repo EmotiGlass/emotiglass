@@ -13,7 +13,8 @@ import Animated, {
   useAnimatedStyle, 
   withTiming, 
   withSpring,
-  interpolateColor
+  interpolateColor,
+  AnimatedStyleProp
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../../constants/theme';
@@ -58,7 +59,7 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
     return {
       transform: [{ translateX: withSpring(activeIndex.value * tabWidth) }],
       width: tabWidth,
-    };
+    } as AnimatedStyleProp<ViewStyle>;
   });
   
   return React.createElement(
