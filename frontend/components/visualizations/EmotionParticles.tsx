@@ -25,6 +25,10 @@ interface Particle {
   speed: number;
 }
 
+/**
+ * Component that renders animated particles based on emotion analysis
+ * with speed variation for more dynamic movement
+ */
 export const EmotionParticles: React.FC<EmotionParticlesProps> = ({ 
   moodAnalysis, 
   count = 40 
@@ -49,17 +53,20 @@ export const EmotionParticles: React.FC<EmotionParticlesProps> = ({
     }));
   }, [moodAnalysis, width, height, count]);
 
-  return (
-    <View style={[styles.container, { width, height }]}>
-      {particles.current.map((particle) => (
-        <ParticleItem 
-          key={particle.id} 
-          particle={particle} 
-          intensity={moodAnalysis.intensity / 100}
-          emotion={moodAnalysis.dominantEmotion}
-        />
-      ))}
-    </View>
+  return React.createElement(
+    'View', 
+    { style: [styles.container, { width, height }] },
+    particles.current.map((particle) => 
+      React.createElement(
+        ParticleItem, 
+        { 
+          key: particle.id,
+          particle,
+          intensity: moodAnalysis.intensity / 100,
+          emotion: moodAnalysis.dominantEmotion
+        }
+      )
+    )
   );
 };
 
@@ -143,9 +150,10 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
     };
   });
   
-  return (
-    <Animated.View
-      style={[
+  return React.createElement(
+    'Animated.View',
+    {
+      style: [
         styles.particle,
         {
           width: particle.size,
@@ -156,8 +164,8 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
           top: 0,
         },
         animatedStyle,
-      ]}
-    />
+      ]
+    }
   );
 };
 
