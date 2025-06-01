@@ -6,7 +6,8 @@ import Animated, {
   withTiming, 
   withRepeat, 
   withSequence,
-  Easing
+  Easing,
+  AnimatedStyleProp
 } from 'react-native-reanimated';
 import { EmotionAnalysisResult } from '../../types';
 
@@ -134,7 +135,7 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
     );
   }, [emotion, intensity, particle]);
   
-  // Animated styles
+  // Animated styles with type assertion to bypass TypeScript error
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -143,12 +144,12 @@ const ParticleItem: React.FC<ParticleItemProps> = ({
         { scale: scale.value }
       ],
       opacity: opacity.value,
-    };
+    } as any;
   });
   
   // Using string component name for Animated.View
   return React.createElement(
-    'Animated.View',
+    Animated.View,
     {
       style: [
         styles.particle,

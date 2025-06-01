@@ -7,7 +7,8 @@ import Animated, {
   withTiming, 
   Easing,
   interpolate,
-  Extrapolate
+  Extrapolate,
+  AnimatedStyleProp
 } from 'react-native-reanimated';
 import { EmotionAnalysisResult } from '../../types';
 import Svg, { Path } from 'react-native-svg';
@@ -57,23 +58,23 @@ export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
     );
   }, [moodAnalysis]);
   
-  // Animated styles for each wave
+  // Animated styles for each wave with type assertion to bypass TypeScript error
   const animatedStyle1 = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: interpolate(progress1.value, [0, 1], [0, -width], Extrapolate.CLAMP) }],
-    };
+    } as any;
   });
   
   const animatedStyle2 = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: interpolate(progress2.value, [0, 1], [0, -width * 1.5], Extrapolate.CLAMP) }],
-    };
+    } as any;
   });
   
   const animatedStyle3 = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: interpolate(progress3.value, [0, 1], [0, -width * 0.8], Extrapolate.CLAMP) }],
-    };
+    } as any;
   });
   
   // Generate wave paths based on emotion
@@ -102,20 +103,20 @@ export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
     null,
     [
       React.createElement(
-        'Animated.View',
+        Animated.View,
         { 
           key: 'wave1',
           style: [styles.waveContainer, animatedStyle1] 
         },
         React.createElement(
-          'Svg',
+          Svg,
           { 
             width: width * 2, 
             height: height, 
             style: styles.wave 
           },
           React.createElement(
-            'Path',
+            Path,
             {
               d: getWavePath(height * 0.15, width * 2, 0),
               fill: colors[0],
@@ -126,20 +127,20 @@ export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
       ),
       
       React.createElement(
-        'Animated.View',
+        Animated.View,
         { 
           key: 'wave2',
           style: [styles.waveContainer, animatedStyle2] 
         },
         React.createElement(
-          'Svg',
+          Svg,
           { 
             width: width * 2, 
             height: height, 
             style: styles.wave 
           },
           React.createElement(
-            'Path',
+            Path,
             {
               d: getWavePath(height * 0.2, width * 2, Math.PI / 2),
               fill: colors[1],
@@ -150,20 +151,20 @@ export const EmotionWaves: React.FC<EmotionWavesProps> = ({ moodAnalysis }) => {
       ),
       
       React.createElement(
-        'Animated.View',
+        Animated.View,
         { 
           key: 'wave3',
           style: [styles.waveContainer, animatedStyle3] 
         },
         React.createElement(
-          'Svg',
+          Svg,
           { 
             width: width * 2, 
             height: height, 
             style: styles.wave 
           },
           React.createElement(
-            'Path',
+            Path,
             {
               d: getWavePath(height * 0.25, width * 2, Math.PI),
               fill: colors[2],
