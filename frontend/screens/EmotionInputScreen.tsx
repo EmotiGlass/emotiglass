@@ -101,17 +101,17 @@ export const EmotionInputScreen: React.FC = () => {
         id: `entry_${Date.now()}`,
         timestamp: Date.now(),
         createdAt: Date.now(),
-        updatedAt: Date.now(),
-        title: '',
-        dominantEmotion,
-        emotionValues: { ...entryData },
+        date: new Date().toISOString().split('T')[0],
         emotions: entryData as EmotionData,
-        source: (entryData.source as 'sliders' | 'drawing' | 'voice' | 'face') || 'sliders',
+        dominantEmotion: dominantEmotion as keyof EmotionData,
+        confidence: highestValue,
         notes: '',
+        source: (entryData.source as 'sliders' | 'drawing' | 'voice' | 'face') || 'sliders',
         tags: [],
-        drawingData: entryData.drawingData,
-        voiceRecordingUri: entryData.voiceRecordingUri,
-        faceImageUri: entryData.faceImageUri
+        emojiSummary: '',
+        title: '',
+        isFavorite: false,
+        drawingData: entryData.drawingData
       };
       
       // Save the entry using the storage service
