@@ -15,14 +15,15 @@ import { Ionicons } from '@expo/vector-icons';
 import theme from '../constants/theme';
 import { EmotionSlider } from '../components/ui/EmotionSlider';
 import { DrawingCanvas } from '../components/ui/DrawingCanvas';
-import { VoiceRecorder } from '../components/ui/VoiceRecorder';
-import { FaceCamera } from '../components/ui/FaceCamera';
-import { EmotionData, RootStackParamList } from '../types';
+import VoiceRecorder from '../components/ui/VoiceRecorder';
+import FaceCamera from '../components/ui/FaceCamera';
+import { EmotionData, RootStackParamList, MoodEntry } from '../types';
 import { generateRandomEmotionData } from '../services/dummyData';
 import { analyzeDrawing, saveDrawing, initDrawingStorage } from '../services/drawingService';
 import { analyzeAudioRecording } from '../services/audioService';
 import { FaceAnalysisResult, faceAnalysisToEmotionData } from '../services/faceAnalysis';
-import { initStorage } from '../services/storage';
+import { initStorage, saveMoodEntry } from '../services/storage';
+import { Card } from '../components/ui/Card';
 
 type EmotionInputScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EmotionInput'>;
 
@@ -45,6 +46,7 @@ export const EmotionInputScreen: React.FC = () => {
   const [faceAnalysis, setFaceAnalysis] = useState<any | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   // Initialize services
   useEffect(() => {
@@ -72,6 +74,67 @@ export const EmotionInputScreen: React.FC = () => {
     
     initializeServices();
   }, []);
+  
+  // Save entry to storage
+  const saveEntry = async (entryData: any) => {
+    try {
+      setLoading(true);
+      
+      // Determine the dominant emotion
+      const emotions = Object.entries(entryData).filter(([key]) => 
+        ['joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust', 'contentment', 'neutral'].includes(key)
+      );
+      
+      // Find the emotion with the highest value
+      let dominantEmotion: string = 'neutral';
+      let highestValue = 0;
+      
+      emotions.forEach(([emotion, value]) => {
+        if (typeof value === 'number' && value > highestValue) {
+          dominantEmotion = emotion;
+          highestValue = value;
+        }
+      });
+      
+      // Create a new MoodEntry object
+      const newEntry: MoodEntry = {
+        id: `entry_${Date.now()}`,
+        timestamp: Date.now(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        title: '',
+        dominantEmotion,
+        emotionValues: { ...entryData },
+        emotions: entryData as EmotionData,
+        source: (entryData.source as 'sliders' | 'drawing' | 'voice' | 'face') || 'sliders',
+        notes: '',
+        tags: [],
+        drawingData: entryData.drawingData,
+        voiceRecordingUri: entryData.voiceRecordingUri,
+        faceImageUri: entryData.faceImageUri
+      };
+      
+      // Save the entry using the storage service
+      const saved = await saveMoodEntry(newEntry);
+      
+      if (!saved) {
+        throw new Error('Failed to save entry');
+      }
+      
+      // Navigate to visualization after saving
+      navigation.navigate('MoodVisualization', {
+        emotionData: entryData
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      Alert.alert('Error', 'Failed to save entry');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Update emotion data from sliders
   const handleSliderChange = (name: keyof EmotionData, value: number) => {
@@ -136,25 +199,29 @@ export const EmotionInputScreen: React.FC = () => {
     }
   };
   
-  // Update emotion data from voice recording
-  const handleVoiceRecorded = async (uri: string) => {
+  // Handle voice recording
+  const handleVoiceRecording = async (recordingData: any) => {
+    setLoading(true);
     try {
-      // Analyze the voice recording
-      const analysis = await analyzeAudioRecording(uri);
+      // In a real app, we would send the recording to an API for analysis
+      // For now, just use the URI and generate random emotion data
+      console.log('Voice recording URI:', recordingData.uri);
       
-      // Update the emotion data with the analysis results
-      setEmotionData(prev => ({
-        ...prev,
-        ...analysis.emotions
-      }));
+      // Generate random emotion data for prototype
+      const emotionData = generateRandomEmotionData();
+      
+      // Save the entry
+      await saveEntry({
+        ...emotionData,
+        source: 'voice',
+        voiceRecordingUri: recordingData.uri
+      });
+      
     } catch (error) {
-      console.error('Failed to analyze voice recording:', error);
-      // If analysis fails, use random data as fallback
-      const randomData = generateRandomEmotionData();
-      setEmotionData(prev => ({
-        ...prev,
-        ...randomData
-      }));
+      console.error('Error processing voice recording:', error);
+      Alert.alert('Error', 'Failed to process voice recording');
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -191,6 +258,22 @@ export const EmotionInputScreen: React.FC = () => {
       Alert.alert('Error', 'Failed to analyze emotions. Please try again.');
       setAnalyzing(false);
     }
+  };
+  
+  // Helper function to get a color for each emotion
+  const getEmotionColor = (emotion: string): string => {
+    const emotionColors: Record<string, string> = {
+      joy: theme.colors.joy,
+      sadness: theme.colors.sadness,
+      anger: theme.colors.anger,
+      fear: theme.colors.fear,
+      surprise: theme.colors.surprise,
+      disgust: theme.colors.disgust,
+      contentment: theme.colors.contentment,
+      neutral: theme.colors.neutral,
+    };
+    
+    return emotionColors[emotion.toLowerCase()] || theme.colors.primary;
   };
   
   // Show loading indicator while initializing
@@ -340,7 +423,7 @@ export const EmotionInputScreen: React.FC = () => {
         
         {activeTab === 'voice' && (
           <View style={styles.voiceContainer}>
-            <VoiceRecorder onRecordingComplete={handleVoiceRecorded} />
+            <VoiceRecorder onRecordingComplete={handleVoiceRecording} />
           </View>
         )}
         
@@ -358,21 +441,18 @@ export const EmotionInputScreen: React.FC = () => {
                 
                 <View style={styles.emotionScoresContainer}>
                   {Object.entries(faceAnalysis.emotionScores).map(([emotion, score]) => (
-                    <View key={emotion} style={styles.emotionScoreItem}>
-                      <Text style={styles.emotionScoreLabel}>
-                        {emotion.charAt(0).toUpperCase() + emotion.slice(1)}:
-                      </Text>
+                    <View key={`emotion-${emotion}`} style={styles.emotionScoreRow}>
+                      <Text style={styles.emotionLabel}>{emotion}</Text>
                       <View style={styles.emotionScoreBarContainer}>
                         <View 
                           style={[
                             styles.emotionScoreBar, 
-                            { width: `${(score as number) * 100}%` }
+                            { width: `${(score as number) * 100}%` },
+                            { backgroundColor: getEmotionColor(emotion) }
                           ]} 
                         />
                       </View>
-                      <Text style={styles.emotionScoreValue}>
-                        {Math.round((score as number) * 100)}%
-                      </Text>
+                      <Text style={styles.emotionScoreText}>{((score as number) * 100).toFixed(0)}%</Text>
                     </View>
                   ))}
                 </View>
@@ -500,12 +580,12 @@ const styles = StyleSheet.create({
   emotionScoresContainer: {
     marginTop: theme.spacing.sm,
   },
-  emotionScoreItem: {
+  emotionScoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: theme.spacing.xs,
   },
-  emotionScoreLabel: {
+  emotionLabel: {
     width: 100,
     fontSize: theme.typography.fontSizes.sm,
     color: theme.colors.text,
@@ -523,7 +603,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: 4,
   },
-  emotionScoreValue: {
+  emotionScoreText: {
     width: 40,
     fontSize: theme.typography.fontSizes.sm,
     color: theme.colors.text,
