@@ -9,10 +9,29 @@ import {
   Dimensions,
   Platform
 } from 'react-native';
-import { Camera, CameraType, FaceDetectionResult } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import * as FaceDetector from 'expo-face-detector';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../../constants/theme';
+
+// Define FaceDetectionResult interface since it's not exported from expo-camera
+interface FaceDetectionResult {
+  faces: Array<{
+    smilingProbability?: number;
+    leftEyeOpenProbability?: number;
+    rightEyeOpenProbability?: number;
+    bounds?: {
+      origin: {
+        x: number;
+        y: number;
+      };
+      size: {
+        width: number;
+        height: number;
+      };
+    };
+  }>;
+}
 
 // Interface for face detection data
 export interface FaceDetectionData {
@@ -35,7 +54,7 @@ const FaceDetectorComponent: React.FC<FaceDetectorProps> = ({
 }) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [detectedFace, setDetectedFace] = useState<FaceDetectionData | null>(null);
-  const cameraRef = useRef<Camera | null>(null);
+  const cameraRef = useRef(null);
 
   // Request camera and face detection permissions
   useEffect(() => {
@@ -161,7 +180,7 @@ const FaceDetectorComponent: React.FC<FaceDetectorProps> = ({
       Camera,
       {
         style: styles.camera,
-        type: CameraType.front,
+        type: "front",
         ref: cameraRef,
         onFacesDetected: handleFacesDetected,
         faceDetectorSettings: {
