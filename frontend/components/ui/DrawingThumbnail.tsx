@@ -139,32 +139,32 @@ export const DrawingThumbnail: React.FC<DrawingThumbnailProps> = ({
 
   const scaledPaths = scalePaths(paths);
 
-  return (
-    <View 
-      style={[
+  return React.createElement(
+    View,
+    { 
+      style: [
         styles.container, 
         { width, height, backgroundColor },
         style
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator size="small" color={theme.colors.primary} />
-      ) : (
-        <Canvas style={{ width, height }}>
-          {scaledPaths.map((path, index) => (
-            <Path
-              key={index}
-              path={createPath(path.points, path.width)}
-              color={path.color}
-              style="stroke"
-              strokeWidth={path.width}
-              strokeCap="round"
-              strokeJoin="round"
-            />
-          ))}
-        </Canvas>
-      )}
-    </View>
+      ]
+    },
+    loading 
+      ? React.createElement(ActivityIndicator, { size: "small", color: theme.colors.primary })
+      : React.createElement(
+          Canvas, 
+          { style: { width, height } },
+          ...scaledPaths.map((path, index) => 
+            React.createElement(Path, {
+              key: index,
+              path: createPath(path.points, path.width),
+              color: path.color,
+              style: "stroke",
+              strokeWidth: path.width,
+              strokeCap: "round",
+              strokeJoin: "round",
+            })
+          )
+        )
   );
 };
 
