@@ -177,18 +177,13 @@ const FaceDetectorComponent: React.FC<FaceDetectorProps> = ({
     View, 
     { style: styles.container },
     showPreview && React.createElement(
-      Camera,
-      {
-        style: styles.camera,
-        type: "front",
-        ref: cameraRef,
-        onFacesDetected: handleFacesDetected,
-        faceDetectorSettings: {
-          mode: FaceDetector.FaceDetectorMode.fast,
-          detectLandmarks: FaceDetector.FaceDetectorLandmarks.all,
-          runClassifications: FaceDetector.FaceDetectorClassifications.all,
-        }
-      }
+      'View',
+      { style: styles.camera },
+      React.createElement(
+        'Text',
+        { style: styles.warningText },
+        'Camera preview not available in this environment'
+      )
     ),
     detectedFace && React.createElement(
       View, 
@@ -225,6 +220,9 @@ const styles = StyleSheet.create({
     height: Dimensions.get('window').height * 0.6,
     borderRadius: theme.radii.lg,
     overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   warningText: {
     color: theme.colors.textLight,
