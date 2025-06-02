@@ -1,23 +1,14 @@
 import { Platform } from 'react-native';
 import { MoodEntry } from '../types';
 import { generateMoodEntries } from './dummyData';
+import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system';
 
-// Import expo modules conditionally to avoid web build issues
-let SecureStore: any = null;
-let FileSystem: any = null;
-
-// Only import native modules on mobile platforms
-if (Platform.OS !== 'web') {
-  try {
-    SecureStore = require('expo-secure-store');
-    FileSystem = require('expo-file-system');
-  } catch (error) {
-    console.warn('Failed to import mobile-specific modules:', error);
-  }
-}
-
+// Storage directory for mood entries
 const MOOD_ENTRIES_KEY = 'emotiglass_mood_entries_index';
-const MOOD_ENTRIES_DIR = FileSystem?.documentDirectory ? FileSystem.documentDirectory + 'mood_entries/' : null;
+const MOOD_ENTRIES_DIR = Platform.OS !== 'web' && FileSystem.documentDirectory 
+  ? FileSystem.documentDirectory + 'mood_entries/' 
+  : null;
 
 export type { MoodEntry };
 
@@ -84,7 +75,7 @@ export const getEntryIndex = async (): Promise<string[]> => {
     if (Platform.OS === 'web') {
       // Use localStorage on web
       indexJson = localStorage.getItem(MOOD_ENTRIES_KEY);
-    } else if (SecureStore) {
+    } else {
       // Use SecureStore on native
       indexJson = await SecureStore.getItemAsync(MOOD_ENTRIES_KEY);
     }
@@ -108,7 +99,7 @@ export const updateEntryIndex = async (entryIds: string[]): Promise<boolean> => 
     if (Platform.OS === 'web') {
       // Use localStorage on web
       localStorage.setItem(MOOD_ENTRIES_KEY, indexJson);
-    } else if (SecureStore) {
+    } else {
       // Use SecureStore on native
       await SecureStore.setItemAsync(MOOD_ENTRIES_KEY, indexJson);
     }
@@ -147,7 +138,7 @@ export const saveMoodEntry = async (entry: MoodEntry): Promise<boolean> => {
     if (Platform.OS === 'web') {
       // Use localStorage on web
       localStorage.setItem(`${MOOD_ENTRIES_KEY}_${entry.id}`, entryJson);
-    } else if (MOOD_ENTRIES_DIR && FileSystem) {
+    } else if (MOOD_ENTRIES_DIR) {
       // Use FileSystem on native
       const entryPath = MOOD_ENTRIES_DIR + entry.id + '.json';
       await FileSystem.writeAsStringAsync(entryPath, entryJson);
@@ -179,7 +170,7 @@ export const getMoodEntry = async (id: string): Promise<MoodEntry | null> => {
       }
       
       return JSON.parse(entryJson) as MoodEntry;
-    } else if (MOOD_ENTRIES_DIR && FileSystem) {
+    } else if (MOOD_ENTRIES_DIR) {
       // Use FileSystem on native
       const entryPath = MOOD_ENTRIES_DIR + id + '.json';
       
@@ -263,7 +254,7 @@ export const deleteMoodEntry = async (id: string): Promise<boolean> => {
     if (Platform.OS === 'web') {
       // Use localStorage on web
       localStorage.removeItem(`${MOOD_ENTRIES_KEY}_${id}`);
-    } else if (MOOD_ENTRIES_DIR && FileSystem) {
+    } else if (MOOD_ENTRIES_DIR) {
       // Use FileSystem on native
       const entryPath = MOOD_ENTRIES_DIR + id + '.json';
       
