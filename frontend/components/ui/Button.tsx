@@ -15,15 +15,19 @@ export const Button: React.FC<ButtonProps> = ({
   style, 
   ...props 
 }) => {
-  return (
-    <TouchableOpacity 
-      style={[styles.button, styles[variant], style]} 
-      {...props}
-    >
-      <Text style={[styles.text, variant === 'outline' && styles.outlineText]}>
-        {title}
-      </Text>
-    </TouchableOpacity>
+  return React.createElement(
+    TouchableOpacity,
+    {
+      style: [styles.button, styles[variant], style],
+      ...props
+    },
+    React.createElement(
+      Text,
+      {
+        style: [styles.text, variant === 'outline' && styles.outlineText]
+      },
+      title
+    )
   );
 };
 
