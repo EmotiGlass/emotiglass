@@ -7,12 +7,7 @@ import {
   Dimensions
 } from 'react-native';
 import theme from '../../constants/theme';
-
-// Dummy interface for mood analysis
-interface EmotionAnalysisResult {
-  dominantEmotion: string;
-  intensity: number;
-}
+import { EmotionAnalysisResult } from '../../types';
 
 interface MoodVisualizationProps {
   moodAnalysis: EmotionAnalysisResult;
@@ -54,29 +49,51 @@ export const MoodVisualization: React.FC<MoodVisualizationProps> = ({ moodAnalys
     setSelectedSound(null);
   };
 
-  return (
-    <View style={[styles.container, { width, height }]}>
-      <Text style={styles.title}>Mood Visualization</Text>
-      <View style={styles.soundControls}>
-        <Text style={styles.currentSound}>
-          {selectedSound ? `Playing: ${selectedSound}` : 'No sound playing'}
-        </Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={() => playDummySound('Ambient')}
-          >
-            <Text style={styles.buttonText}>Play Ambient</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={stopDummySound}
-          >
-            <Text style={styles.buttonText}>Stop</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+  return React.createElement(
+    View,
+    { style: [styles.container, { width, height }] },
+    React.createElement(
+      Text,
+      { style: styles.title },
+      'Mood Visualization'
+    ),
+    React.createElement(
+      View,
+      { style: styles.soundControls },
+      React.createElement(
+        Text,
+        { style: styles.currentSound },
+        selectedSound ? `Playing: ${selectedSound}` : 'No sound playing'
+      ),
+      React.createElement(
+        View,
+        { style: styles.buttonContainer },
+        React.createElement(
+          TouchableOpacity,
+          { 
+            style: styles.button,
+            onPress: () => playDummySound('Ambient')
+          },
+          React.createElement(
+            Text,
+            { style: styles.buttonText },
+            'Play Ambient'
+          )
+        ),
+        React.createElement(
+          TouchableOpacity,
+          { 
+            style: styles.button,
+            onPress: stopDummySound
+          },
+          React.createElement(
+            Text,
+            { style: styles.buttonText },
+            'Stop'
+          )
+        )
+      )
+    )
   );
 };
 
