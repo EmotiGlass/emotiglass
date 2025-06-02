@@ -21,14 +21,11 @@ import ViewShot from 'react-native-view-shot';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Canvas, Path as SkiaPath, Skia, PaintStyle, CanvasRef } from '@shopify/react-native-skia';
+import { Point } from '../../types';
 
 /**
  * Type definitions for Drawing Canvas component
  */
-type Point = {
-  x: number;
-  y: number;
-};
 
 // SkPath type from Skia
 type SkPath = ReturnType<typeof Skia.Path.Make>;
@@ -329,46 +326,42 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const skiaPath = createSkiaPath(currentPoints);
     
     // Return both the main path and the preview effect
-    return (
-      <>
-        {/* Main stroke */}
-        <SkiaPath
-          path={skiaPath}
-          color={currentColor}
-          strokeWidth={currentWidth}
-          style="stroke"
-          strokeCap="round"
-          strokeJoin="round"
-        />
+    return [
+      // Main stroke
+      React.createElement(SkiaPath, {
+        path: skiaPath,
+        color: currentColor,
+        strokeWidth: currentWidth,
+        style: "stroke",
+        strokeCap: "round",
+        strokeJoin: "round"
+      }),
+      
+      // Glow effect for better visual feedback
+      React.createElement(SkiaPath, {
+        path: skiaPath,
+        color: currentColor,
+        style: "stroke",
+        strokeWidth: currentWidth + 4,
+        strokeCap: "round",
+        strokeJoin: "round",
+        opacity: 0.2
+      }),
+      
+      // Brush position indicator
+      isDrawing && currentPoints.length > 0 && (() => {
+        const lastPoint = currentPoints[currentPoints.length - 1];
+        const path = Skia.Path.Make();
+        path.addCircle(lastPoint.x, lastPoint.y, currentWidth + 2);
         
-        {/* Glow effect for better visual feedback */}
-        <SkiaPath
-          path={skiaPath}
-          color={currentColor}
-          style="stroke"
-          strokeWidth={currentWidth + 4}
-          strokeCap="round"
-          strokeJoin="round"
-          opacity={0.2}
-        />
-        
-        {/* Brush position indicator */}
-        {isDrawing && currentPoints.length > 0 && (() => {
-          const lastPoint = currentPoints[currentPoints.length - 1];
-          const path = Skia.Path.Make();
-          path.addCircle(lastPoint.x, lastPoint.y, currentWidth + 2);
-          
-          return (
-            <SkiaPath
-              path={path}
-              color={currentColor}
-              style="stroke"
-              strokeWidth={2}
-            />
-          );
-        })()}
-      </>
-    );
+        return React.createElement(SkiaPath, {
+          path: path,
+          color: currentColor,
+          style: "stroke",
+          strokeWidth: 2
+        });
+      })()
+    ];
   };
   
   // Add a function to render grid lines
@@ -387,13 +380,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       path.lineTo(canvasWidth, y);
       
       horizontalLines.push(
-        <SkiaPath
-          key={`h-${y}`}
-          path={path}
-          color="rgba(0, 0, 0, 0.05)"
-          style="stroke"
-          strokeWidth={1}
-        />
+        React.createElement(SkiaPath, {
+          key: `h-${y}`,
+          path: path,
+          color: "rgba(0, 0, 0, 0.05)",
+          style: "stroke",
+          strokeWidth: 1
+        })
       );
     }
     
@@ -404,131 +397,172 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       path.lineTo(x, canvasHeight);
       
       verticalLines.push(
-        <SkiaPath
-          key={`v-${x}`}
-          path={path}
-          color="rgba(0, 0, 0, 0.05)"
-          style="stroke"
-          strokeWidth={1}
-        />
+        React.createElement(SkiaPath, {
+          key: `v-${x}`,
+          path: path,
+          color: "rgba(0, 0, 0, 0.05)",
+          style: "stroke",
+          strokeWidth: 1
+        })
       );
     }
     
     return [...horizontalLines, ...verticalLines];
   };
   
-  return (
-    <View style={styles.container}>
-      {/* Drawing Canvas */}
-      <ViewShot
-        ref={viewShotRef}
-        options={{ format: 'png', quality: 0.9 }}
-        style={[
+  return React.createElement(
+    View, 
+    { style: styles.container },
+    
+    // Drawing Canvas
+    React.createElement(
+      ViewShot,
+      {
+        ref: viewShotRef,
+        options: { format: 'png', quality: 0.9 },
+        style: [
           styles.canvasContainer,
           { 
             width: typeof width === 'number' ? width : Dimensions.get('window').width - 32, 
             height: typeof height === 'number' ? height : 300 
           }
-        ]}
-      >
-        <GestureDetector gesture={panGesture}>
-          <Canvas 
-            ref={canvasRef}
-            style={[
+        ]
+      },
+      React.createElement(
+        GestureDetector,
+        { gesture: panGesture },
+        React.createElement(
+          Canvas,
+          {
+            ref: canvasRef,
+            style: [
               styles.canvas,
               { 
                 width: typeof width === 'number' ? width : Dimensions.get('window').width - 32, 
                 height: typeof height === 'number' ? height : 300 
               },
               isDrawing && styles.activeCanvas // Add highlighted border when drawing
-            ]}
-          >
-            {/* Grid lines for better spatial reference */}
-            {renderGridLines()}
-            
-            {/* Render completed paths */}
-            {paths.map((path) => (
-              <SkiaPath
-                key={path.id}
-                path={path.skiaPath}
-                color={path.color}
-                strokeWidth={path.width}
-                style="stroke"
-                strokeCap="round"
-                strokeJoin="round"
-              />
-            ))}
-            
-            {/* Render current path with effects */}
-            {renderCurrentSkiaPath()}
-          </Canvas>
-        </GestureDetector>
-      </ViewShot>
-      
-      {/* Empty State Overlay */}
-      {paths.length === 0 && !isDrawing && (
-        <View style={styles.emptyCanvasOverlay}>
-          <Text style={styles.emptyCanvasText}>Draw your emotions here</Text>
-          <Ionicons name="pencil-outline" size={32} color="rgba(0, 0, 0, 0.2)" />
-        </View>
-      )}
-      
-      {/* Toolbar */}
-      <View style={styles.toolbar}>
-        {/* Drawing Tools */}
-        <View style={styles.toolSection}>
-          <TouchableOpacity
-            style={styles.toolButton}
-            onPress={handleUndo}
-            disabled={paths.length === 0}
-          >
-            <Ionicons
-              name="arrow-undo"
-              size={24}
-              color={paths.length === 0 ? theme.colors.textLight : theme.colors.primary}
-            />
-          </TouchableOpacity>
+            ]
+          },
+          // Grid lines for better spatial reference
+          ...renderGridLines(),
           
-          <TouchableOpacity
-            style={styles.toolButton}
-            onPress={handleClear}
-            disabled={paths.length === 0}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={24}
-              color={paths.length === 0 ? theme.colors.textLight : theme.colors.primary}
-            />
-          </TouchableOpacity>
+          // Render completed paths
+          ...paths.map((path) => 
+            React.createElement(SkiaPath, {
+              key: path.id,
+              path: path.skiaPath,
+              color: path.color,
+              strokeWidth: path.width,
+              style: "stroke",
+              strokeCap: "round",
+              strokeJoin: "round"
+            })
+          ),
           
-            <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={saveToMediaLibrary}
-            disabled={paths.length === 0 || isExporting}
-          >
-            <Ionicons
-              name="save-outline"
-              size={24}
-              color={paths.length === 0 ? theme.colors.textLight : theme.colors.primary}
-            />
-            </TouchableOpacity>
-          </View>
+          // Render current path with effects
+          ...renderCurrentSkiaPath()
+        )
+      )
+    ),
+    
+    // Empty State Overlay
+    paths.length === 0 && !isDrawing && React.createElement(
+      View,
+      { style: styles.emptyCanvasOverlay },
+      React.createElement(
+        Text,
+        { style: styles.emptyCanvasText },
+        "Draw your emotions here"
+      ),
+      React.createElement(
+        Ionicons,
+        { name: "pencil-outline", size: 32, color: "rgba(0, 0, 0, 0.2)" }
+      )
+    ),
+    
+    // Toolbar
+    React.createElement(
+      View,
+      { style: styles.toolbar },
+      
+      // Drawing Tools
+      React.createElement(
+        View,
+        { style: styles.toolSection },
+        React.createElement(
+          TouchableOpacity,
+          {
+            style: styles.toolButton,
+            onPress: handleUndo,
+            disabled: paths.length === 0
+          },
+          React.createElement(
+            Ionicons,
+            {
+              name: "arrow-undo",
+              size: 24,
+              color: paths.length === 0 ? theme.colors.textLight : theme.colors.primary
+            }
+          )
+        ),
         
-        {/* Add Clear Button */}
-        <TouchableOpacity
-          style={[styles.clearButton, paths.length === 0 && styles.disabledButton]}
-          onPress={handleClear}
-          disabled={paths.length === 0}
-        >
-          <Text style={[styles.clearButtonText, paths.length === 0 && styles.disabledText]}>
-            Clear Drawing
-          </Text>
-        </TouchableOpacity>
+        React.createElement(
+          TouchableOpacity,
+          {
+            style: styles.toolButton,
+            onPress: handleClear,
+            disabled: paths.length === 0
+          },
+          React.createElement(
+            Ionicons,
+            {
+              name: "trash-outline",
+              size: 24,
+              color: paths.length === 0 ? theme.colors.textLight : theme.colors.primary
+            }
+          )
+        ),
         
-        {/* Export Button */}
-        <TouchableOpacity
-          style={[styles.exportButton, paths.length === 0 && styles.disabledButton]}
-          onPress={async () => {
+        React.createElement(
+          TouchableOpacity,
+          {
+            style: styles.toolButton,
+            onPress: saveToMediaLibrary,
+            disabled: paths.length === 0 || isExporting
+          },
+          React.createElement(
+            Ionicons,
+            {
+              name: "save-outline",
+              size: 24,
+              color: paths.length === 0 ? theme.colors.textLight : theme.colors.primary
+            }
+          )
+        )
+      ),
+      
+      // Add Clear Button
+      React.createElement(
+        TouchableOpacity,
+        {
+          style: [styles.clearButton, paths.length === 0 && styles.disabledButton],
+          onPress: handleClear,
+          disabled: paths.length === 0
+        },
+        React.createElement(
+          Text,
+          { style: [styles.clearButtonText, paths.length === 0 && styles.disabledText] },
+          "Clear Drawing"
+        )
+      ),
+      
+      // Export Button
+      React.createElement(
+        TouchableOpacity,
+        {
+          style: [styles.exportButton, paths.length === 0 && styles.disabledButton],
+          onPress: async () => {
             setIsExporting(true);
             try {
               const base64 = await exportAsBase64();
@@ -541,59 +575,80 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
             } finally {
               setIsExporting(false);
             }
-          }}
-          disabled={paths.length === 0 || isExporting}
-        >
-          {isExporting ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.exportButtonText}>Done</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      {/* Color Picker */}
-          <View style={styles.colorPickerContainer}>
-        <Text style={styles.toolbarLabel}>Color</Text>
-            <View style={styles.colorPicker}>
-              {colorOptions.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorButton,
-                    { backgroundColor: color },
-                    currentColor === color && styles.selectedColor,
-                  ]}
-                  onPress={() => handleColorChange(color)}
-                />
-              ))}
-            </View>
-          </View>
-          
-      {/* Stroke Width Picker */}
-          <View style={styles.widthPickerContainer}>
-        <Text style={styles.toolbarLabel}>Stroke Width</Text>
-            <View style={styles.widthPicker}>
-              {strokeWidths.map((width) => (
-                <TouchableOpacity
-                  key={width}
-                  style={[
-                    styles.widthButton,
-                    currentWidth === width && styles.selectedWidth,
-                  ]}
-                  onPress={() => handleWidthChange(width)}
-                >
-                  <View
-                    style={[
-                      styles.widthIndicator,
-                      { height: width, backgroundColor: currentColor },
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-        </View>
-    </View>
+          },
+          disabled: paths.length === 0 || isExporting
+        },
+        isExporting 
+          ? React.createElement(ActivityIndicator, { size: "small", color: "#fff" })
+          : React.createElement(Text, { style: styles.exportButtonText }, "Done")
+      )
+    ),
+    
+    // Color Picker
+    React.createElement(
+      View,
+      { style: styles.colorPickerContainer },
+      React.createElement(
+        Text,
+        { style: styles.toolbarLabel },
+        "Color"
+      ),
+      React.createElement(
+        View,
+        { style: styles.colorPicker },
+        ...colorOptions.map((color) => 
+          React.createElement(
+            TouchableOpacity,
+            {
+              key: color,
+              style: [
+                styles.colorButton,
+                { backgroundColor: color },
+                currentColor === color && styles.selectedColor,
+              ],
+              onPress: () => handleColorChange(color)
+            }
+          )
+        )
+      )
+    ),
+    
+    // Stroke Width Picker
+    React.createElement(
+      View,
+      { style: styles.widthPickerContainer },
+      React.createElement(
+        Text,
+        { style: styles.toolbarLabel },
+        "Stroke Width"
+      ),
+      React.createElement(
+        View,
+        { style: styles.widthPicker },
+        ...strokeWidths.map((width) => 
+          React.createElement(
+            TouchableOpacity,
+            {
+              key: width,
+              style: [
+                styles.widthButton,
+                currentWidth === width && styles.selectedWidth,
+              ],
+              onPress: () => handleWidthChange(width)
+            },
+            React.createElement(
+              View,
+              {
+                style: [
+                  styles.widthIndicator,
+                  { height: width, backgroundColor: currentColor },
+                ]
+              }
+            )
+          )
+        )
+      )
+    )
   );
 };
 
@@ -732,7 +787,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   clearButton: {
-    backgroundColor: theme.colors.lightGray,
+    backgroundColor: theme.colors.background, // Corrected to use existing theme color
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     borderRadius: 4,
