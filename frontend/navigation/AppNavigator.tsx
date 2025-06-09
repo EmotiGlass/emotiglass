@@ -1,126 +1,87 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import HomeScreen from '../screens/HomeScreen';
+// Screens
+import SessionScreen from '../screens/SessionScreen';
+import JournalScreen from '../screens/JournalScreen';
+import JournalEntryDetailScreen from '../screens/JournalEntryDetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import MoodDiaryScreen from '../screens/MoodDiaryScreen';
-import EmotionCaptureScreen from '../screens/EmotionCaptureScreen';
-import EntryDetailsScreen from '../screens/EntryDetailsScreen';
-import AmbientModeScreen from '../screens/AmbientModeScreen';
-import theme from '../constants/theme';
 
-// Define the param lists for our navigators
+// Define types for navigation
 export type RootStackParamList = {
   Main: undefined;
-  EntryDetails: { entryId: string };
-  AmbientMode: undefined;
-  EmotionCapture: undefined;
+  JournalEntryDetail: { entryId: string };
 };
 
 export type MainTabParamList = {
-  Home: undefined;
-  MoodDiary: undefined;
+  Session: undefined;
+  Journal: undefined;
   Settings: undefined;
 };
 
-// Create navigators
-const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
-// Tab Navigator
 const MainTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
+          let iconName: any;
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'MoodDiary') {
+          if (route.name === 'Session') {
+            iconName = focused ? 'recording' : 'recording-outline';
+          } else if (route.name === 'Journal') {
             iconName = focused ? 'journal' : 'journal-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
-          } else {
-            iconName = 'help-circle-outline';
           }
 
-          return <Ionicons name={iconName as any} size={size} color={color} />;
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textLight,
-        tabBarStyle: {
-          backgroundColor: theme.colors.cardBackground,
-          borderTopColor: theme.colors.border,
-        },
-        headerStyle: {
-          backgroundColor: theme.colors.cardBackground,
-        },
-        headerTintColor: theme.colors.text,
+        tabBarActiveTintColor: '#4169E1',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: false,
       })}
     >
       <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ title: 'EmotiGlass' }}
+        name="Session" 
+        component={SessionScreen} 
+        options={{ tabBarLabel: 'Track Emotions' }}
       />
       <Tab.Screen 
-        name="MoodDiary" 
-        component={MoodDiaryScreen} 
-        options={{ title: 'Mood Diary' }}
+        name="Journal" 
+        component={JournalScreen} 
+        options={{ tabBarLabel: 'Journal' }}
       />
       <Tab.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: 'Settings' }}
+        options={{ tabBarLabel: 'Settings' }}
       />
     </Tab.Navigator>
   );
 };
 
-// Main App Navigator
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: theme.colors.cardBackground,
-          },
-          headerTintColor: theme.colors.text,
-          headerBackTitleVisible: false,
-        }}
-      >
-        <Stack.Screen 
-          name="Main" 
-          component={MainTabNavigator} 
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Main"
+          component={MainTabNavigator}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="EntryDetails" 
-          component={EntryDetailsScreen} 
-          options={{ title: 'Mood Entry Details' }}
-        />
-        <Stack.Screen 
-          name="AmbientMode" 
-          component={AmbientModeScreen} 
+        <Stack.Screen
+          name="JournalEntryDetail"
+          component={JournalEntryDetailScreen}
           options={{ 
-            title: 'Ambient Mode',
-            headerTransparent: true,
-            headerTintColor: '#fff',
-          }}
-        />
-        <Stack.Screen 
-          name="EmotionCapture" 
-          component={EmotionCaptureScreen} 
-          options={{ 
-            title: 'Capture Emotions',
-            headerStyle: {
-              backgroundColor: theme.colors.background,
-            },
+            title: 'Journal Entry',
+            headerBackTitleVisible: false,
+            headerTintColor: '#4169E1',
           }}
         />
       </Stack.Navigator>

@@ -1,177 +1,142 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Switch, 
+  TouchableOpacity, 
   ScrollView,
-  Switch,
-  TouchableOpacity,
-  SafeAreaView,
   Alert,
+  SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import theme from '../constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearAllJournalEntries } from '../storage/JournalSaver';
+
+const STORAGE_KEYS = {
+  USE_DARK_THEME: 'emotiglass_dark_theme',
+  USE_NOTIFICATIONS: 'emotiglass_notifications',
+  USE_ENCRYPTION: 'emotiglass_encryption',
+};
 
 const SettingsScreen: React.FC = () => {
-  // Settings state
+  const [darkThemeEnabled, setDarkThemeEnabled] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-  const [locationEnabled, setLocationEnabled] = useState(false);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-  const [dataCollection, setDataCollection] = useState(true);
-  
-  // Placeholder function for clearing data
+  const [encryptionEnabled, setEncryptionEnabled] = useState(true);
+
+  const toggleSetting = async (key: string, value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    try {
+      setter(value);
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error('Error saving setting:', error);
+      setter(!value);
+      Alert.alert('Error', 'Failed to save your setting. Please try again.');
+    }
+  };
+
   const handleClearData = () => {
     Alert.alert(
       'Clear All Data',
-      'Are you sure you want to clear all your emotion data? This action cannot be undone.',
+      'Are you sure you want to delete all your journal entries? This action cannot be undone.',
       [
         {
           text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'Clear Data',
+          text: 'Delete Everything',
           style: 'destructive',
-          onPress: () => {
-            // In a real app, this would clear the user's data
-            Alert.alert('Success', 'All data has been cleared');
+          onPress: async () => {
+            try {
+              await clearAllJournalEntries();
+              Alert.alert('Success', 'All journal entries have been deleted.');
+            } catch (error) {
+              console.error('Error clearing data:', error);
+              Alert.alert('Error', 'Failed to clear data. Please try again.');
+            }
           },
         },
       ]
     );
   };
-  
-  // Placeholder function for exports
-  const handleExportData = () => {
-    Alert.alert('Export', 'Your data will be exported (feature not implemented)');
-  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-        
-        {/* General settings */}
-        <View style={styles.settingsGroup}>
+      <ScrollView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Settings</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>App Preferences</Text>
+          
           <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="notifications" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Notifications</Text>
+            <View style={styles.settingInfo}>
+              <Ionicons name="moon" size={24} color="#4169E1" style={styles.icon} />
+              <View>
+                <Text style={styles.settingTitle}>Dark Theme</Text>
+                <Text style={styles.settingDescription}>Use dark theme for the app interface</Text>
+              </View>
+            </View>
+            <Switch
+              value={darkThemeEnabled}
+              onValueChange={(value) => toggleSetting(STORAGE_KEYS.USE_DARK_THEME, value, setDarkThemeEnabled)}
+              trackColor={{ false: '#d1d1d1', true: '#a4c7fc' }}
+              thumbColor={darkThemeEnabled ? '#4169E1' : '#f4f4f4'}
+            />
+          </View>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="notifications" size={24} color="#4169E1" style={styles.icon} />
+              <View>
+                <Text style={styles.settingTitle}>Notifications</Text>
+                <Text style={styles.settingDescription}>Enable push notifications</Text>
+              </View>
             </View>
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primary }}
-              thumbColor="#fff"
-            />
-          </View>
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="moon" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Dark Mode</Text>
-            </View>
-            <Switch
-              value={darkModeEnabled}
-              onValueChange={setDarkModeEnabled}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primary }}
-              thumbColor="#fff"
-            />
-          </View>
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="location" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Location Tracking</Text>
-            </View>
-            <Switch
-              value={locationEnabled}
-              onValueChange={setLocationEnabled}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primary }}
-              thumbColor="#fff"
+              onValueChange={(value) => toggleSetting(STORAGE_KEYS.USE_NOTIFICATIONS, value, setNotificationsEnabled)}
+              trackColor={{ false: '#d1d1d1', true: '#a4c7fc' }}
+              thumbColor={notificationsEnabled ? '#4169E1' : '#f4f4f4'}
             />
           </View>
         </View>
-        
-        {/* Privacy settings */}
-        <Text style={styles.sectionTitle}>Privacy & Security</Text>
-        <View style={styles.settingsGroup}>
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="finger-print" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Biometric Authentication</Text>
-            </View>
-            <Switch
-              value={biometricsEnabled}
-              onValueChange={setBiometricsEnabled}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primary }}
-              thumbColor="#fff"
-            />
-          </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Privacy & Security</Text>
           
           <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="analytics" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Anonymous Data Collection</Text>
+            <View style={styles.settingInfo}>
+              <Ionicons name="lock-closed" size={24} color="#4169E1" style={styles.icon} />
+              <View>
+                <Text style={styles.settingTitle}>Encrypt Data</Text>
+                <Text style={styles.settingDescription}>Encrypt your journal entries</Text>
+              </View>
             </View>
             <Switch
-              value={dataCollection}
-              onValueChange={setDataCollection}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primary }}
-              thumbColor="#fff"
+              value={encryptionEnabled}
+              onValueChange={(value) => toggleSetting(STORAGE_KEYS.USE_ENCRYPTION, value, setEncryptionEnabled)}
+              trackColor={{ false: '#d1d1d1', true: '#a4c7fc' }}
+              thumbColor={encryptionEnabled ? '#4169E1' : '#f4f4f4'}
             />
           </View>
         </View>
-        
-        {/* Data management */}
-        <Text style={styles.sectionTitle}>Data Management</Text>
-        <View style={styles.settingsGroup}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleExportData}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="download" size={22} color={theme.colors.primary} />
-              <Text style={styles.settingLabel}>Export Your Data</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.textLight} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.dangerButton]} 
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Data Management</Text>
+          <TouchableOpacity
+            style={styles.dangerButton}
             onPress={handleClearData}
           >
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="trash" size={22} color={theme.colors.error} />
-              <Text style={[styles.settingLabel, styles.dangerText]}>Clear All Data</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.error} />
+            <Ionicons name="trash" size={20} color="#fff" style={styles.dangerButtonIcon} />
+            <Text style={styles.dangerButtonText}>Clear All Data</Text>
           </TouchableOpacity>
         </View>
-        
-        {/* About section */}
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.settingsGroup}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Version</Text>
-            <Text style={styles.infoValue}>1.0.0</Text>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Build</Text>
-            <Text style={styles.infoValue}>2025.05.31</Text>
-          </View>
-        </View>
-        
-        {/* Footer */}
+
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            EmotiGlass © 2025
-          </Text>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Privacy Policy</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Terms of Service</Text>
-          </TouchableOpacity>
+          <Text style={styles.footerText}>EmotiGlass v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -181,86 +146,83 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#f8f8f8',
   },
-  scrollContent: {
-    padding: theme.spacing.md,
+  header: {
+    padding: 20,
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  section: {
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginHorizontal: 15,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: theme.typography.fontSizes.lg,
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.text,
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
-  },
-  settingsGroup: {
-    backgroundColor: theme.colors.cardBackground,
-    borderRadius: theme.radii.md,
-    ...theme.shadows.light,
-    marginBottom: theme.spacing.md,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.lightGray,
+    borderBottomColor: '#f0f0f0',
   },
-  settingLabelContainer: {
+  settingInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  settingLabel: {
-    fontSize: theme.typography.fontSizes.md,
-    color: theme.colors.text,
-    marginLeft: theme.spacing.sm,
+  icon: {
+    marginRight: 15,
   },
-  actionButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.lightGray,
+  settingTitle: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 2,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#999',
   },
   dangerButton: {
-    borderBottomWidth: 0,
+    backgroundColor: '#ff6b6b',
+    padding: 15,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  dangerText: {
-    color: theme.colors.error,
+  dangerButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  infoItem: {
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.lightGray,
-  },
-  infoLabel: {
-    fontSize: theme.typography.fontSizes.sm,
-    color: theme.colors.textLight,
-    marginBottom: theme.spacing.xs,
-  },
-  infoValue: {
-    fontSize: theme.typography.fontSizes.md,
-    color: theme.colors.text,
+  dangerButtonIcon: {
+    marginRight: 8,
   },
   footer: {
+    padding: 20,
     alignItems: 'center',
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xl,
   },
   footerText: {
-    fontSize: theme.typography.fontSizes.sm,
-    color: theme.colors.textLight,
-    marginBottom: theme.spacing.sm,
-  },
-  footerLink: {
-    fontSize: theme.typography.fontSizes.sm,
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.xs,
+    color: '#999',
+    fontSize: 14,
   },
 });
 
